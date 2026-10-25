@@ -34,7 +34,7 @@ jobs:
       - run: npm run dist
         working-directory: overlay
       - id: upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: installer
           path: overlay/dist/ARC-Chat-Setup-*.exe
