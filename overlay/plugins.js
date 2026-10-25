@@ -310,8 +310,20 @@ function createPluginManager({ root, appDir, getState, setState }) {
     }
     const file = safeJoin(path.join(dir, plugin.id), rel);
     const type = MIME[path.extname(rel).toLowerCase()];
-    if (!file || !type || !fs.existsSync(file) || !fs.statSync(file).isFile()) return new Response("Not found", { status: 404 });
-    return new Response(fs.readFileSync(file), { headers: { ...headers, "content-type": type } });
+    if (!file || !type) return new Response("Not found", { status: 404 });
+    let body;
+    try {
+      const fd = fs.openSync(file, "r");
+      try {
+        if (!fs.fstatSync(fd).isFile()) return new Response("Not found", { status: 404 });
+        body = fs.readFileSync(fd);
+      } finally {
+        fs.closeSync(fd);
+      }
+    } catch {
+      return new Response("Not found", { status: 404 });
+    }
+    return new Response(body, { headers: { ...headers, "content-type": type } });
   }
 
   return { list, active, stageFolder, stageGitHub, discard, install, setEnabled, remove, storageGet, storageSet, serve };

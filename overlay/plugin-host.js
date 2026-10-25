@@ -114,8 +114,8 @@
           return to(e.source, { type: "init", room: context.room, selfId: context.selfId, plugin: { id: plugin.id, version: plugin.version } });
         case "render:result":
         case "command:result": {
-          const resolve = waiting.get(m.reqId);
-          if (resolve) {
+          const resolve = typeof m.reqId === "string" ? waiting.get(m.reqId) : undefined;
+          if (typeof resolve === "function") {
             waiting.delete(m.reqId);
             resolve(m);
           }
