@@ -122,7 +122,6 @@ button:hover kbd { background: #fff; }
 .name { color: var(--name); font-weight: 600; margin-right: 6px; }
 .name::after { content: ":"; }
 .self .name { color: var(--own-name) !important; }
-.verified .name::before { content: "\2713\00a0"; font-weight: 700; opacity: 0.75; }
 .system { color: var(--system); font-style: italic; }
 
 #composer { display: none; padding: 6px 8px 8px; }

@@ -108,7 +108,6 @@ function addMessage(m) {
   name.textContent = m.user.name;
   if (m.user.id === selfId) li.classList.add("self");
   else if (settings.namesColorful) name.style.color = colorFor(m.user.id);
-  if (m.user.provider === "steam") li.classList.add("verified");
 
   const text = document.createElement("span");
   text.className = "text";
