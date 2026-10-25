@@ -27,6 +27,8 @@ There is nothing to configure: the app is already connected to the ARC Chat serv
 
 > Windows may show *"Windows protected your PC"* because the installer isn't code-signed yet.
 > Click **More info**, then **Run anyway**.
+>
+> Code signing for Windows releases is being set up with the [SignPath Foundation](https://signpath.org).
 
 ## How it works
 
@@ -60,7 +62,7 @@ Both keys can be changed in the settings, along with colors, opacity, font size 
 
 ARC Chat never touches the game. It takes screenshots of the game window, like any capture tool, and reads the match code with Windows' built-in text recognition. It doesn't read game memory, inject anything or send input to the game.
 
-You sign in on Steam's own website. The app never sees your password. Messages are moderated automatically, and you can report or mute anyone.
+You sign in on Steam's own website. The app never sees your password. Messages are moderated automatically, and you can report or mute anyone. See the [privacy policy](PRIVACY.md) for what data is handled and why.
 
 *ARC Chat is a fan project, not affiliated with or endorsed by Embark Studios. ARC Raiders is a trademark of its owners.*
 
