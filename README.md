@@ -10,7 +10,7 @@
 
 [![Release](https://img.shields.io/github/v/release/JaysonPasquier/ARC-Chat?color=24d36e&label=release)](https://github.com/JaysonPasquier/ARC-Chat/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/JaysonPasquier/ARC-Chat/total?color=3fe0e0)](https://github.com/JaysonPasquier/ARC-Chat/releases)
-[![License](https://img.shields.io/github/license/JaysonPasquier/ARC-Chat?color=ee3b36)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0-ee3b36)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-9a8cff)
 
 </div>
@@ -77,6 +77,14 @@ npm start
 
 To build the installer yourself, see [docs/RELEASE.md](docs/RELEASE.md).
 
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- Only releases built from this repository by GitHub Actions are signed.
+- Approver and committer: [JaysonPasquier](https://github.com/JaysonPasquier).
+- Privacy: the app only sends your chat messages and your Steam name to the ARC Chat server, and nothing else. The installer itself sends no data.
+
 ## License
 
-Released under the [MIT License](LICENSE) © 2026 JaysonPasquier.
+Released under the [GNU General Public License v3.0](LICENSE) © 2026 JaysonPasquier. You can read, modify and share the code, but any version you distribute must stay under the same license, with the source and the original copyright.
