@@ -58,6 +58,12 @@ Both keys can be changed in the settings, along with colors, opacity, font size 
 
 `Tab` completes player names.
 
+## Plugins
+
+Plugins add features to the chat: commands, images in messages, panels, settings pages. Install them from **Settings → Plugins**, from a folder or a GitHub repository. Each plugin shows what it wants to do before you install it, and runs in its own sandbox.
+
+Want to make one? See [docs/PLUGINS.md](docs/PLUGINS.md).
+
 ## Safe by design
 
 ARC Chat never touches the game. It takes screenshots of the game window, like any capture tool, and reads the match code with Windows' built-in text recognition. It doesn't read game memory, inject anything or send input to the game.

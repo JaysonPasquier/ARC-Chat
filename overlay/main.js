@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray, globalShortcut, ipcMain, nativeImage, safeStorage, screen, shell } = require("electron");
+const { app, BrowserWindow, Menu, Tray, dialog, globalShortcut, ipcMain, nativeImage, protocol, safeStorage, screen, shell } = require("electron");
 const path = require("node:path");
 const { fileURLToPath } = require("node:url");
 const fs = require("node:fs");
@@ -7,6 +7,9 @@ const { spawn } = require("node:child_process");
 const { io } = require("socket.io-client");
 const { linkWithSteam } = require("./steam-link");
 const { resolveServerUrl } = require("./server-url");
+const { createPluginManager, PERMISSIONS } = require("./plugins");
+
+protocol.registerSchemesAsPrivileged([{ scheme: "arc-plugin", privileges: { standard: true, secure: true, supportFetchAPI: true } }]);
 
 const ALLOW_CAPTURE = process.argv.includes("--allow-capture");
 const NO_WATCHER = process.argv.includes("--no-watcher");
@@ -56,6 +59,7 @@ const DEFAULTS = {
   hideFromCapture: true,
   bounds: null,
   mutedPlayers: [],
+  plugins: {},
   ...LOOK_DEFAULTS,
 };
 
@@ -65,6 +69,16 @@ const cleanMutes = (list) =>
     .filter((p) => p && typeof p.id === "string" && /^steam:[a-f0-9]{20}$/.test(p.id))
     .slice(0, MAX_MUTES)
     .map((p) => ({ id: p.id, name: String(p.name ?? "").slice(0, 40) }));
+
+function cleanPluginState(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object") return out;
+  const strings = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === "string").slice(0, 20) : []);
+  for (const [id, v] of Object.entries(raw)) {
+    if (/^[a-z0-9][a-z0-9-]{1,39}$/.test(id) && v && typeof v === "object") out[id] = { enabled: Boolean(v.enabled), granted: strings(v.granted), network: strings(v.network) };
+  }
+  return out;
+}
 
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 const color = (v) => (/^#[0-9a-f]{6}$/i.test(String(v)) ? String(v).toLowerCase() : undefined);
@@ -125,6 +139,7 @@ function loadSettings() {
   for (const [key, check] of Object.entries(LOOK_SCHEMA)) if (check(s[key]) === undefined) s[key] = LOOK_DEFAULTS[key];
   s.serverUrl = SERVER.url;
   s.mutedPlayers = cleanMutes(s.mutedPlayers);
+  s.plugins = cleanPluginState(s.plugins);
   return s;
 }
 
@@ -135,7 +150,7 @@ function saveSettings() {
 }
 
 function publicSettings() {
-  const { pythonPath, watcherPath, bounds, serverUrl, ...rest } = settings;
+  const { pythonPath, watcherPath, bounds, serverUrl, plugins: _plugins, ...rest } = settings;
   return rest;
 }
 
@@ -652,6 +667,47 @@ handle("auth-unlink", () => {
 
 on("quit", () => app.quit());
 
+let plugins;
+const pluginsChanged = () => send("plugins-changed", null);
+const attempt = async (fn) => {
+  try {
+    return { ok: true, value: await fn() };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+};
+
+handle("plugins-active", () => plugins.active());
+handle("plugins-list", () => ({ plugins: plugins.list(), permissions: PERMISSIONS }));
+handle("plugin-stage-folder", async () => {
+  const pick = await dialog.showOpenDialog(settingsWin ?? win, { title: "Choose a plugin folder", properties: ["openDirectory"] });
+  if (pick.canceled || !pick.filePaths[0]) return { ok: false, error: "" };
+  return attempt(() => plugins.stageFolder(pick.filePaths[0]));
+});
+handle("plugin-stage-github", (_e, repo) => attempt(() => plugins.stageGitHub(repo)));
+handle("plugin-discard", (_e, token) => attempt(() => plugins.discard(String(token))));
+handle("plugin-install", (_e, token) =>
+  attempt(() => {
+    const manifest = plugins.install(String(token));
+    pluginsChanged();
+    return manifest;
+  }),
+);
+handle("plugin-set-enabled", (_e, id, enabled) =>
+  attempt(() => {
+    plugins.setEnabled(String(id), Boolean(enabled));
+    pluginsChanged();
+  }),
+);
+handle("plugin-remove", (_e, id) =>
+  attempt(() => {
+    plugins.remove(String(id));
+    pluginsChanged();
+  }),
+);
+handle("plugin-storage-get", (_e, id, key) => attempt(() => plugins.storageGet(String(id), key)));
+handle("plugin-storage-set", (_e, id, key, value) => attempt(() => plugins.storageSet(String(id), key, value)));
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
@@ -660,6 +716,17 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(() => {
     settings = loadSettings();
     saveSettings();
+    plugins = createPluginManager({
+      root: app.getPath("userData"),
+      appDir: __dirname,
+      getState: () => settings.plugins,
+      setState: (id, value) => {
+        if (value) settings.plugins[id] = value;
+        else delete settings.plugins[id];
+        saveSettings();
+      },
+    });
+    protocol.handle("arc-plugin", (req) => plugins.serve(req.url));
     account = loadAccount();
     firstRun = !currentAuth();
     createWindow();

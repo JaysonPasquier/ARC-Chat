@@ -31,12 +31,12 @@
     return { error: `No player called "${args.split(/\s+/)[0]}" has spoken in this match.` };
   }
 
-  function suggest(text, players) {
+  function suggest(text, players, extra = []) {
     if (!text.startsWith("/")) return [];
     const space = text.indexOf(" ");
     if (space === -1) {
       const typed = text.slice(1).toLowerCase();
-      return Object.keys(COMMANDS).filter((c) => c.startsWith(typed)).map((c) => `/${c} `);
+      return [...Object.keys(COMMANDS), ...extra].filter((c) => c.startsWith(typed)).map((c) => `/${c} `);
     }
     const cmd = text.slice(1, space).toLowerCase();
     if (!["report", "mute", "unmute"].includes(cmd)) return [];

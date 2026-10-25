@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-src arc-plugin:">
   <title>ARC Chat settings</title>
   <link rel="stylesheet" href="settings.css">
 </head>
@@ -17,6 +17,7 @@
     <button type="button" class="tab" data-tab="chat" role="tab">Chat</button>
     <button type="button" class="tab" data-tab="colors" role="tab">Colors</button>
     <button type="button" class="tab" data-tab="controls" role="tab">Controls</button>
+    <button type="button" class="tab" data-tab="plugins" role="tab">Plugins</button>
   </nav>
 
   <main>
@@ -182,6 +183,44 @@
           <button type="button" id="btn-quit" class="line-btn danger">Quit</button>
         </div>
       </section>
+      <section class="panel" data-panel="plugins" hidden>
+        <h3><i></i>Installed</h3>
+        <div id="plugin-list"></div>
+
+        <h3><i></i>Add a plugin</h3>
+        <div class="row">
+          <span class="label">From a folder on this PC</span>
+          <button type="button" id="btn-plugin-folder" class="line-btn">Choose</button>
+        </div>
+        <div class="row">
+          <input id="plugin-repo" class="text-input" placeholder="GitHub: owner/repo" spellcheck="false">
+          <button type="button" id="btn-plugin-github" class="line-btn">Get</button>
+        </div>
+
+        <div id="plugin-review" class="review" hidden>
+          <div class="review-head">
+            <span id="review-name" class="account-name"></span>
+            <span id="review-meta" class="dim"></span>
+          </div>
+          <p id="review-desc" class="note"></p>
+          <p class="note">It asks for:</p>
+          <ul id="review-perms" class="perms"></ul>
+          <p class="warn">Plugins are made by other players, not by ARC Chat. Only install plugins you trust.</p>
+          <div class="review-buttons">
+            <button type="button" id="btn-review-cancel" class="line-btn">Cancel</button>
+            <button type="button" id="btn-review-install" class="line-btn primary">Install</button>
+          </div>
+        </div>
+        <p class="note">Plugins add features to the chat. They run apart from the app and can only do what you allow here. They never get your Steam account or access to the game.</p>
+      </section>
+
+      <section class="panel" data-panel="plugin-page" hidden>
+        <div class="row">
+          <span id="plugin-page-title" class="account-name"></span>
+          <button type="button" id="btn-plugin-back" class="line-btn">Back</button>
+        </div>
+        <div id="plugin-page"></div>
+      </section>
     </form>
   </main>
 
@@ -210,6 +249,7 @@
     </div>
   </div>
 
+  <script src="plugin-host.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

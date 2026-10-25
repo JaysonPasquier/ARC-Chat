@@ -92,9 +92,22 @@ function hideMuted() {
   for (const el of list.querySelectorAll(".name[data-uid]")) if (muted.has(el.dataset.uid)) el.parentElement.remove();
 }
 
-function addMessage(m) {
+const plugins = ArcPluginHost.createPluginHost({ print: addSystem, builtIn: Object.keys(ArcCommands.COMMANDS) });
+
+async function loadPlugins() {
+  plugins.clear();
+  const active = await arc.pluginsActive();
+  if (!Array.isArray(active)) return;
+  for (const p of active) {
+    plugins.add(p, "__host.html", "main", $("plugin-frames"));
+    if (p.overlay) plugins.add(p, p.overlay.page, "overlay", $("plugin-panels"), p.overlay.height);
+  }
+}
+
+function addMessage(m, live = true) {
   if (m.user.id !== selfId) seen.set(m.user.id, m.user.name);
   if (mutedIds().has(m.user.id)) return;
+  if (live) plugins.emit("message", { user: { id: m.user.id, name: m.user.name }, text: m.text, ts: m.ts, self: m.user.id === selfId }, "chat:read");
   const li = document.createElement("li");
   li.className = "msg";
 
@@ -115,6 +128,11 @@ function addMessage(m) {
 
   li.append(time, name, text);
   appendLine(li);
+  if (plugins.hasRenderers()) {
+    plugins.render({ text: m.text, user: { id: m.user.id, name: m.user.name }, ts: m.ts }).then((nodes) => {
+      if (nodes?.length && li.isConnected) text.replaceChildren(...nodes);
+    });
+  }
 }
 
 function addSystem(text) {
@@ -144,6 +162,7 @@ async function runCommand(text) {
   const { name, args } = parse(text);
   if (name === "help") {
     for (const c of Object.values(COMMANDS)) addSystem(`${c.usage} — ${c.help}`);
+    for (const c of plugins.commands()) addSystem(`${c.usage} — ${c.help} (${c.plugin})`);
     return;
   }
   if (name === "mutes") {
@@ -151,7 +170,10 @@ async function runCommand(text) {
     addSystem(muted.length ? `Muted: ${muted.map((p) => p.name || p.id).join(", ")}` : "You haven't muted anyone.");
     return;
   }
-  if (!COMMANDS[name]) return addSystem(`Unknown command /${name}. Type /help.`);
+  if (!COMMANDS[name]) {
+    if (await plugins.run(name, args)) return;
+    return addSystem(`Unknown command /${name}. Type /help.`);
+  }
   const pool = name === "unmute" ? (settings.mutedPlayers ?? []) : knownPlayers();
   const found = resolvePlayer(args, pool);
   if (found.error) return addSystem(found.error);
@@ -173,7 +195,7 @@ input.addEventListener("keydown", (e) => {
   if (e.key !== "Tab") return tabState && e.key.length === 1 && (tabState = null);
   e.preventDefault();
   if (!tabState || input.value !== tabState.options[tabState.i]) {
-    tabState = { options: ArcCommands.suggest(input.value, knownPlayers()), i: -1 };
+    tabState = { options: ArcCommands.suggest(input.value, knownPlayers(), plugins.commands().map((c) => c.name)), i: -1 };
   }
   if (!tabState.options.length) return;
   tabState.i = (tabState.i + 1) % tabState.options.length;
@@ -249,17 +271,22 @@ document.addEventListener("keydown", (e) => {
 
 arc.onMode(setMode);
 arc.onSettings(applySettings);
-arc.onRoom(setRoom);
+arc.onRoom((code) => {
+  setRoom(code);
+  plugins.emit("room", code);
+});
+arc.onPluginsChanged(loadPlugins);
 arc.onConnection(setConnection);
 arc.onSystem(addSystem);
-arc.onMessage(addMessage);
+arc.onMessage((m) => addMessage(m));
 arc.onLeft((code) => addSystem(`Back to lobby — left match ${code}`));
 arc.onJoined(({ room, selfId: id, history }) => {
   selfId = id;
   list.replaceChildren();
   seen.clear();
   addSystem(`Joined match ${room}`);
-  for (const m of history) addMessage(m);
+  plugins.emit("joined", { room, selfId: id });
+  for (const m of history) addMessage(m, false);
 });
 
 (async () => {
@@ -270,4 +297,6 @@ arc.onJoined(({ room, selfId: id, history }) => {
   setMode(state.mode);
   setRoom(state.room);
   addSystem(`ARC Chat ready — ${state.settings.hotkeyChat} to type, ${state.settings.hotkeyEdit} to move.`);
+  plugins.emit("joined", { room: state.room, selfId: state.selfId });
+  loadPlugins();
 })();

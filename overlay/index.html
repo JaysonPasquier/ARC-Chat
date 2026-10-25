@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; frame-src arc-plugin:">
   <title>ARC Chat</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,13 +13,16 @@
       <button id="btn-settings" type="button">Settings</button>
       <button id="btn-done" type="button"><kbd id="done-key">F10</kbd>Done</button>
     </div>
+    <div id="plugin-panels"></div>
     <ul id="messages"></ul>
     <form id="composer" autocomplete="off">
       <input id="input" maxlength="300">
     </form>
     <div id="resize-grip" title="Drag to resize"></div>
   </div>
+  <div id="plugin-frames" hidden></div>
   <script src="commands.js"></script>
+  <script src="plugin-host.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

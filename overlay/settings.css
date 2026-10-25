@@ -377,3 +377,24 @@ footer .status { flex: 1; }
 #error.ok { color: var(--ok); }
 #error.hint { color: var(--gold); }
 .buttons { display: flex; align-items: center; gap: 10px; flex: none; }
+
+.text-input { flex: 1; min-width: 0; padding: 5px 8px; font: 13px Consolas, monospace; color: var(--text); background: var(--bg); border: 1px solid var(--edge); outline: none; }
+.text-input:focus { border-color: var(--text); }
+.line-btn.primary { color: #101215; background: var(--gold); border-color: var(--gold); }
+.line-btn.primary:hover { color: #101215; background: #ffd23d; border-color: #ffd23d; }
+.plugin-card { padding: 10px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.plugin-card .top { display: flex; align-items: center; gap: 8px; }
+.plugin-card .top .name { flex: 1; font-weight: 600; }
+.plugin-card .actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.plugin-card .state { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dim); }
+.plugin-card .state.active { color: var(--ok); }
+.plugin-card .state.warn { color: var(--gold); }
+.plugin-card .state.bad { color: var(--bad); }
+.dim { color: var(--dim); font-size: 12px; }
+.review { margin-top: 10px; padding: 12px; background: var(--panel); border: 1px solid var(--gold); }
+.review-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.perms { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+.perms .net { color: var(--dim); font: 12px Consolas, monospace; }
+.warn { color: var(--gold); font-size: 12px; margin: 10px 2px 0; }
+.review-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+#plugin-page .plugin-frame { display: block; width: 100%; height: 480px; border: 0; background: var(--panel); }

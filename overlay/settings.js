@@ -432,6 +432,145 @@ function renderMuted(muted = []) {
 }
 arc.onSettings((s) => renderMuted(s.mutedPlayers));
 
+let permissionText = {};
+let staged = null;
+const pageHost = ArcPluginHost.createPluginHost({ print: (text) => showError(text, "hint") });
+
+function el(tag, props = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "text") node.textContent = v;
+    else if (k === "class") node.className = v;
+    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+    else node.setAttribute(k, v);
+  }
+  node.append(...children.filter(Boolean));
+  return node;
+}
+
+const STATES = {
+  active: ["On", "active"],
+  disabled: ["Off", ""],
+  "needs-approval": ["Updated, needs your OK", "warn"],
+  broken: ["Broken", "bad"],
+};
+
+async function act(promise, done) {
+  const res = await promise;
+  if (res?.ok === false) return showError(res.error || "Something went wrong");
+  if (done) showError(done, true);
+  renderPlugins();
+}
+
+async function renderPlugins() {
+  const res = await arc.pluginsList();
+  permissionText = res?.permissions ?? {};
+  const box = $("plugin-list");
+  const list = res?.plugins ?? [];
+  if (!list.length) return box.replaceChildren(el("p", { class: "note", text: "No plugins installed." }));
+  box.replaceChildren(
+    ...list.map((p) => {
+      const [label, cls] = STATES[p.status] ?? [p.status, ""];
+      const actions = el("div", { class: "actions" });
+      if (p.status === "active") {
+        actions.append(el("button", { type: "button", class: "line-btn", text: "Turn off", onclick: () => act(arc.pluginSetEnabled(p.id, false)) }));
+        if (p.settings) actions.append(el("button", { type: "button", class: "line-btn", text: "Settings", onclick: () => openPluginPage(p) }));
+      } else if (p.status !== "broken") {
+        actions.append(
+          el("button", {
+            type: "button",
+            class: "line-btn primary",
+            text: p.status === "needs-approval" ? "Review" : "Turn on",
+            onclick: () => review({ manifest: p, source: "installed", enableId: p.id }),
+          }),
+        );
+      }
+      actions.append(
+        el("button", {
+          type: "button",
+          class: "line-btn danger",
+          text: "Remove",
+          onclick: () => confirm(`Remove ${p.name} and its saved data?`) && act(arc.pluginRemove(p.id), `${p.name} removed.`),
+        }),
+      );
+      return el(
+        "div",
+        { class: "plugin-card" },
+        el("div", { class: "top" }, el("span", { class: "name", text: p.name }), el("span", { class: `state ${cls}`, text: label })),
+        el("div", { class: "dim", text: [p.version && `v${p.version}`, p.author && `by ${p.author}`].filter(Boolean).join(" · ") }),
+        p.error ? el("div", { class: "note", text: p.error }) : p.description ? el("div", { class: "note", text: p.description }) : null,
+        actions,
+      );
+    }),
+  );
+}
+
+function review(item) {
+  staged = item;
+  const m = item.manifest;
+  $("review-name").textContent = m.name;
+  $("review-meta").textContent = [`v${m.version}`, m.author && `by ${m.author}`, item.source !== "installed" && item.source, item.replaces && `replaces v${item.replaces}`]
+    .filter(Boolean)
+    .join(" · ");
+  $("review-desc").textContent = m.description || "";
+  const perms = m.permissions.map((p) => el("li", { text: permissionText[p] ?? p }));
+  if (m.network.length) perms.push(el("li", {}, "Connect to: ", el("span", { class: "net", text: m.network.join(", ") })));
+  if (!perms.length) perms.push(el("li", { text: "Nothing special" }));
+  $("review-perms").replaceChildren(...perms);
+  $("btn-review-install").textContent = item.enableId ? "Turn on" : "Install";
+  $("plugin-review").hidden = false;
+  $("plugin-review").scrollIntoView({ block: "nearest" });
+}
+
+function closeReview() {
+  if (staged?.token) arc.pluginDiscard(staged.token);
+  staged = null;
+  $("plugin-review").hidden = true;
+}
+
+$("btn-review-cancel").addEventListener("click", closeReview);
+$("btn-review-install").addEventListener("click", async () => {
+  const item = staged;
+  staged = null;
+  $("plugin-review").hidden = true;
+  if (!item) return;
+  if (item.enableId) return act(arc.pluginSetEnabled(item.enableId, true), `${item.manifest.name} is on.`);
+  act(arc.pluginInstall(item.token), `${item.manifest.name} installed.`);
+});
+
+async function stageWith(promise, button) {
+  closeReview();
+  button.disabled = true;
+  showError("Checking the plugin…", "hint");
+  const res = await promise;
+  button.disabled = false;
+  if (!res?.ok) return showError(res?.error ? `Can't install: ${res.error}` : "");
+  showError("");
+  review(res.value);
+}
+
+$("btn-plugin-folder").addEventListener("click", (e) => stageWith(arc.pluginStageFolder(), e.currentTarget));
+$("btn-plugin-github").addEventListener("click", (e) => stageWith(arc.pluginStageGitHub($("plugin-repo").value), e.currentTarget));
+$("plugin-repo").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  $("btn-plugin-github").click();
+});
+
+function openPluginPage(p) {
+  pageHost.clear();
+  $("plugin-page-title").textContent = p.name;
+  showTab("plugin-page");
+  pageHost.add(p, p.settings.page, "settings", $("plugin-page"));
+}
+$("btn-plugin-back").addEventListener("click", () => {
+  pageHost.clear();
+  showTab("plugins");
+});
+
+arc.onPluginsChanged(renderPlugins);
+renderPlugins();
+
 arc.onConnection((c) => { status.connection = c; renderStatus(); });
 arc.onRoom((r) => { status.room = r; renderStatus(); });
 arc.onWatcher((w) => { status.watcher = w; renderStatus(); });
