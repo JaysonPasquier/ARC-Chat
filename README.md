@@ -19,9 +19,11 @@
 
 ## Download
 
-1. Go to the **[latest release](https://github.com/JaysonPasquier/ARC-Chat/releases/latest)**.
-2. Download `ARC-Chat-Setup-x.y.z.exe` and run it.
-3. Open **ARC Chat**, link your Steam account in the settings, and start the game.
+1. Go to the **[latest release](https://github.com/JaysonPasquier/ARC-Chat/releases/latest)** and download `ARC-Chat-Setup-x.y.z.exe`.
+2. Run it. ARC Chat starts on its own.
+3. Launch ARC Raiders. That's it.
+
+There is nothing to configure: the app is already connected to the ARC Chat server. The first time, link your Steam account in the settings so people know who is talking.
 
 > Windows may show *"Windows protected your PC"* because the installer isn't code-signed yet.
 > Click **More info**, then **Run anyway**.
