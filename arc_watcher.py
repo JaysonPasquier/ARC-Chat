@@ -37,7 +37,7 @@ STATE_SEARCHING     = "SEARCHING"
 STATE_WAITING_JOUER = "WAITING_JOUER"
 STATE_PAUSED        = "PAUSED"
 
-TMP_PATH = os.path.join(tempfile.gettempdir(), "arc_ocr_tmp.png")
+TMP_PATH = os.path.join(tempfile.gettempdir(), f"arc_ocr_{os.getpid()}_{os.urandom(6).hex()}.png")
 
 BG        = "#0e0e0e"
 BG2       = "#1a1a1a"
@@ -185,6 +185,11 @@ async def ocr_pil(pil_img: Image.Image) -> str:
     dec    = await wgi.BitmapDecoder.create_async(stream)
     bmp    = await dec.get_software_bitmap_async()
     result = await engine.recognize_async(bmp)
+    stream.close()
+    try:
+        os.remove(TMP_PATH)
+    except OSError:
+        pass
     return result.text
 
 

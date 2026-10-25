@@ -10,7 +10,11 @@ permissions:
   actions: read
 
 jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: checks
     runs-on: windows-latest
     outputs:
       artifact-id: ${{ steps.upload.outputs.artifact-id }}

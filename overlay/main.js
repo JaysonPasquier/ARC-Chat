@@ -1,5 +1,6 @@
 const { app, BrowserWindow, Menu, Tray, globalShortcut, ipcMain, nativeImage, safeStorage, screen, shell } = require("electron");
 const path = require("node:path");
+const { fileURLToPath } = require("node:url");
 const fs = require("node:fs");
 const readline = require("node:readline");
 const { spawn } = require("node:child_process");
@@ -185,6 +186,24 @@ const securePrefs = {
   nodeIntegration: false,
   sandbox: true,
 };
+
+const PAGES = new Set(["index.html", "settings.html"].map((f) => path.join(__dirname, f).toLowerCase()));
+function trusted(e) {
+  try {
+    return PAGES.has(fileURLToPath(e.senderFrame.url.split(/[?#]/)[0]).toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function handle(channel, fn) {
+  ipcMain.handle(channel, (e, ...args) => (trusted(e) ? fn(e, ...args) : { ok: false, error: "refused" }));
+}
+function on(channel, fn) {
+  ipcMain.on(channel, (e, ...args) => {
+    if (trusted(e)) fn(e, ...args);
+  });
+}
 
 function lockDown(w) {
   w.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
@@ -483,7 +502,7 @@ function applySettings(patch) {
   return { ok: true, settings: publicSettings() };
 }
 
-ipcMain.handle("get-state", () => ({
+handle("get-state", () => ({
   settings: publicSettings(),
   auth: publicAuth(),
   lookDefaults: LOOK_DEFAULTS,
@@ -495,7 +514,7 @@ ipcMain.handle("get-state", () => ({
   firstRun,
 }));
 
-ipcMain.handle("send-message", (_e, text) => {
+handle("send-message", (_e, text) => {
   if (typeof text !== "string" || !text.trim()) return { ok: false, error: "empty message" };
   if (!currentAuth()) return { ok: false, error: "link your Steam account in settings first" };
   if (!socket?.connected) return { ok: false, error: "server offline" };
@@ -507,7 +526,7 @@ ipcMain.handle("send-message", (_e, text) => {
   });
 });
 
-ipcMain.handle("save-settings", (_e, patch) => applySettings(patch));
+handle("save-settings", (_e, patch) => applySettings(patch));
 
 function setMutes(list) {
   settings.mutedPlayers = list;
@@ -515,7 +534,7 @@ function setMutes(list) {
   send("settings", publicSettings());
 }
 
-ipcMain.handle("mute-player", (_e, player) => {
+handle("mute-player", (_e, player) => {
   const [p] = cleanMutes([player]);
   if (!p) return { ok: false, error: "Unknown player" };
   if (p.id === selfId) return { ok: false, error: "You can't mute yourself." };
@@ -524,12 +543,12 @@ ipcMain.handle("mute-player", (_e, player) => {
   return { ok: true };
 });
 
-ipcMain.handle("unmute-player", (_e, userId) => {
+handle("unmute-player", (_e, userId) => {
   setMutes(settings.mutedPlayers.filter((m) => m.id !== userId));
   return { ok: true };
 });
 
-ipcMain.handle("report-player", (_e, userId, reason) => {
+handle("report-player", (_e, userId, reason) => {
   if (typeof userId !== "string") return { ok: false, error: "Unknown player" };
   if (!currentAuth()) return { ok: false, error: "link your Steam account in settings first" };
   if (!socket?.connected) return { ok: false, error: "server offline" };
@@ -540,24 +559,24 @@ ipcMain.handle("report-player", (_e, userId, reason) => {
   });
 });
 
-ipcMain.on("preview-look", (_e, patch) => {
+on("preview-look", (_e, patch) => {
   if (!patch || typeof patch !== "object") return;
   const { look } = cleanLook(patch);
   if (look) showLook({ ...publicSettings(), ...look });
 });
 
-ipcMain.on("revert-look", () => showLook(publicSettings()));
-ipcMain.on("open-settings", () => openSettings());
+on("revert-look", () => showLook(publicSettings()));
+on("open-settings", () => openSettings());
 
-ipcMain.on("set-mode", (_e, next) => {
+on("set-mode", (_e, next) => {
   if (["play", "chat", "edit"].includes(next)) setMode(next);
 });
 
-ipcMain.on("resize-start", () => {
+on("resize-start", () => {
   resizeOrigin = win.getBounds();
 });
 
-ipcMain.on("resize-move", (_e, dx, dy) => {
+on("resize-move", (_e, dx, dy) => {
   if (!resizeOrigin || mode !== "edit") return;
   win.setBounds({
     ...resizeOrigin,
@@ -566,26 +585,26 @@ ipcMain.on("resize-move", (_e, dx, dy) => {
   });
 });
 
-ipcMain.on("resize-end", () => {
+on("resize-end", () => {
   resizeOrigin = null;
   persistBounds();
 });
 
-ipcMain.on("move-start", () => {
+on("move-start", () => {
   moveOrigin = win.getBounds();
 });
 
-ipcMain.on("move-by", (_e, dx, dy) => {
+on("move-by", (_e, dx, dy) => {
   if (!moveOrigin || mode !== "edit") return;
   win.setBounds({ ...moveOrigin, x: Math.round(moveOrigin.x + Number(dx)), y: Math.round(moveOrigin.y + Number(dy)) });
 });
 
-ipcMain.on("move-end", () => {
+on("move-end", () => {
   moveOrigin = null;
   persistBounds();
 });
 
-ipcMain.handle("auth-link-steam", async () => {
+handle("auth-link-steam", async () => {
   linkAbort?.abort();
   const controller = (linkAbort = new AbortController());
   settingsWin?.setAlwaysOnTop(false);
@@ -612,9 +631,9 @@ ipcMain.handle("auth-link-steam", async () => {
   }
 });
 
-ipcMain.on("auth-cancel", () => linkAbort?.abort());
+on("auth-cancel", () => linkAbort?.abort());
 
-ipcMain.handle("auth-unlink", () => {
+handle("auth-unlink", () => {
   const linked = currentAuth();
   if (linked) {
     fetch(`${linked.origin}/auth/logout`, {
@@ -631,7 +650,7 @@ ipcMain.handle("auth-unlink", () => {
   return { ok: true };
 });
 
-ipcMain.on("quit", () => app.quit());
+on("quit", () => app.quit());
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();

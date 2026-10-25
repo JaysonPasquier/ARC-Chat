@@ -1,0 +1,54 @@
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: overlay/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          npm ci --prefix overlay
+          python -m pip install mss pillow winsdk
+
+      - name: Syntax
+        shell: bash
+        run: |
+          for f in overlay/*.js; do node --check "$f"; done
+          python -m py_compile arc_watcher.py
+
+      - name: Tests
+        run: npm test --prefix overlay
+
+      - name: Watcher self-test
+        run: python arc_watcher.py --selftest
+
+      - name: Dependency audit
+        run: npm audit --prefix overlay --audit-level=high
+
+      - name: Electron security settings
+        shell: bash
+        run: |
+          grep -q "contextIsolation: true" overlay/main.js
+          grep -q "nodeIntegration: false" overlay/main.js
+          grep -q "sandbox: true" overlay/main.js
+          grep -q "setWindowOpenHandler" overlay/main.js
+          ! grep -nE "innerHTML|insertAdjacentHTML|document\.write|eval\(|new Function" overlay/*.js

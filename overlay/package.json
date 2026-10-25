@@ -9,7 +9,8 @@
     "local": "electron . --allow-capture --server=http://localhost:3000",
     "build:watcher": "python -m PyInstaller --noconfirm --clean --onedir --name arc-watcher --distpath build/watcher-dist --workpath build/pyi --specpath build/pyi --exclude-module numpy --collect-binaries winsdk --hidden-import winsdk.windows.media.ocr --hidden-import winsdk.windows.graphics.imaging --hidden-import winsdk.windows.storage --hidden-import winsdk.windows.foundation --hidden-import winsdk.windows.foundation.collections --hidden-import winsdk.windows.globalization --hidden-import winsdk.windows.storage.streams ../arc_watcher.py",
     "dist": "npm run build:watcher && npm run dist:app",
-    "dist:app": "electron-builder --win nsis --publish never"
+    "dist:app": "electron-builder --win nsis --publish never",
+    "test": "node commands.test.js"
   },
   "dependencies": {
     "socket.io-client": "^4.8.4"
@@ -64,6 +65,14 @@
       "perMachine": false,
       "deleteAppDataOnUninstall": false,
       "shortcutName": "ARC Chat"
+    },
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "enableCookieEncryption": true
     }
   },
   "license": "GPL-3.0-only"
