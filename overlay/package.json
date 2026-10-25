@@ -13,7 +13,7 @@
     "test": "node commands.test.js && node plugins.test.js"
   },
   "dependencies": {
-    "adm-zip": "^0.5.16",
+    "adm-zip": "^0.6.1",
     "socket.io-client": "^4.8.4"
   },
   "devDependencies": {

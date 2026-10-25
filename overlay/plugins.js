@@ -136,8 +136,11 @@ function extractZip(buffer, dest) {
     if (name.startsWith("/") || name.split("/").includes("..") || !target.startsWith(path.resolve(dest) + path.sep)) throw new Error("the archive contains unsafe paths");
     total += entry.header.size;
     if (total > MAX_BYTES) throw new Error("plugin is too big (20 MB max)");
+    const data = entry.getData();
+    total += Math.max(0, data.length - entry.header.size);
+    if (total > MAX_BYTES || data.length > MAX_BYTES) throw new Error("plugin is too big (20 MB max)");
     fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, entry.getData());
+    fs.writeFileSync(target, data);
   }
 }
 
