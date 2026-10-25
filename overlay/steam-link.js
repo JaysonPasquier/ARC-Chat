@@ -33,7 +33,6 @@ async function postJson(url, body, signal) {
   return { ok: res.ok, status: res.status, data };
 }
 
-// The sign-in URL is built here from the server origin; nothing the server sends is ever opened.
 async function linkWithSteam({ serverUrl, openExternal, signal, onCode = () => {}, pollMs = POLL_MS, timeoutMs = TIMEOUT_MS }) {
   const origin = new URL(serverUrl).origin;
 

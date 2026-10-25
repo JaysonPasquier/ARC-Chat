@@ -1,8 +1,5 @@
 const PROD_SERVER_URL = "https://api.web-and-live.com";
 
-// Players always use the live server. Developers can point at another one with
-// `--server=http://localhost:3000` or the ARC_CHAT_SERVER environment variable.
-// It is never read from the settings file, so editing that file cannot redirect the Steam session token.
 function resolveServerUrl({ argv = process.argv, env = process.env } = {}) {
   const raw = argv.find((a) => a.startsWith("--server="))?.slice("--server=".length) || env.ARC_CHAT_SERVER;
   if (!raw) return { url: PROD_SERVER_URL, overridden: false };

@@ -1,4 +1,3 @@
-// Run with: node commands.test.js
 const assert = require("node:assert/strict");
 const { parse, resolvePlayer, suggest } = require("./commands.js");
 

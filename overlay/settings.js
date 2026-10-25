@@ -81,7 +81,6 @@ function refresh() {
   syncColors();
 }
 
-// kind: true / "ok" = success, "hint" = guidance, otherwise an error
 function showError(text, kind) {
   errorBox.textContent = text;
   errorBox.className = kind === true || kind === "ok" ? "ok" : kind === "hint" ? "hint" : "";
@@ -153,7 +152,6 @@ function drawPicker(hex) {
   for (const chip of $("palette-grid").children) chip.classList.toggle("on", chip.dataset.color === hex);
 }
 
-// From a typed or picked hex value: keep the current hue for greys so the hue bar doesn't jump.
 function loadHex(hex, { updateField = true } = {}) {
   const [h, s, v] = rgbToHsv(...hexToRgb(hex));
   hsv = [s && v ? h : hsv[0], s, v];

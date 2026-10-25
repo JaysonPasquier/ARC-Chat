@@ -1,7 +1,3 @@
-"""
-ARC Raiders - Match Code Watcher  (UI version)
-"""
-
 import asyncio
 import ctypes
 import ctypes.wintypes
@@ -22,13 +18,10 @@ from PIL import Image, ImageEnhance
 from PIL import ImageChops
 
 POLL_INTERVAL  = 2.0   # seconds between grabs
-# Everything below is relative to the game window's client area, never to the screen.
 CODE_W_PCT     = 0.15  # code crop width, as a share of the window width...
 CODE_W_MIN_H   = 0.30  # ...but at least this share of the window height (text size follows the height)
 CODE_H_PCT     = 0.08
 CODE_H_TIGHT_PCT = 0.03  # used instead when the crop reaches into the UI area, where the HUD's chat row sits just above the code
-# The game draws its UI inside a centered 16:9 area (on a 32:9 screen there are margins on both sides).
-# The JOUER region is measured against that area, so it stays correct for any window shape.
 UI_ASPECT      = 16 / 9
 JOUER_X1_PCT   = 0.70
 JOUER_Y1_PCT   = 0.74
@@ -80,7 +73,6 @@ PROBLEM_TEXT = {
 
 
 def _ensure_dpi_aware():
-    """Window and screen coordinates must be real pixels, or they won't line up on scaled displays."""
     global _dpi_ready
     if _dpi_ready:
         return
@@ -97,7 +89,7 @@ def _ensure_dpi_aware():
 def _is_game_window(hwnd) -> bool:
     pid = ctypes.wintypes.DWORD()
     _user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-    handle = _kernel32.OpenProcess(0x1000, False, pid.value)  # PROCESS_QUERY_LIMITED_INFORMATION
+    handle = _kernel32.OpenProcess(0x1000, False, pid.value)
     if not handle:
         return False
     buf  = ctypes.create_unicode_buffer(520)
@@ -108,10 +100,6 @@ def _is_game_window(hwnd) -> bool:
 
 
 def find_game_window():
-    """
-    Client area of the focused PioneerGame window as ((left, top, width, height), None) in screen pixels,
-    or (None, reason) when there is nothing usable to read. Works on any monitor, windowed or fullscreen.
-    """
     _ensure_dpi_aware()
     hwnd = _user32.GetForegroundWindow()
     if not hwnd or not _is_game_window(hwnd):
@@ -125,9 +113,8 @@ def find_game_window():
     width, height = rect.right - rect.left, rect.bottom - rect.top
     if width < MIN_WINDOW_W or height < MIN_WINDOW_H:
         return None, "too-small"
-    # The code sits in the window's bottom-right corner, so every part of the window must be on screen.
-    vx, vy = _user32.GetSystemMetrics(76), _user32.GetSystemMetrics(77)   # SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN
-    vw, vh = _user32.GetSystemMetrics(78), _user32.GetSystemMetrics(79)   # SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN
+    vx, vy = _user32.GetSystemMetrics(76), _user32.GetSystemMetrics(77)
+    vw, vh = _user32.GetSystemMetrics(78), _user32.GetSystemMetrics(79)
     if origin.x < vx or origin.y < vy or origin.x + width > vx + vw or origin.y + height > vy + vh:
         return None, "off-screen"
     return (origin.x, origin.y, width, height), None
@@ -140,7 +127,6 @@ def capture_region(left: int, top: int, width: int, height: int) -> Image.Image:
 
 
 def ui_area(width: int, height: int):
-    """The centered 16:9 area the game draws its UI in, as (x, y, w, h) inside a window of this size."""
     w = min(width, int(height * UI_ASPECT))
     h = min(height, int(width / UI_ASPECT))
     return (width - w) // 2, (height - h) // 2, w, h
@@ -167,7 +153,6 @@ def is_jouer_visible(img: Image.Image) -> bool:
     x1, y1 = ux + int(uw * JOUER_X1_PCT), uy + int(uh * JOUER_Y1_PCT)
     x2, y2 = ux + int(uw * JOUER_X2_PCT), uy + int(uh * JOUER_Y2_PCT)
     region = img.crop((x1, y1, x2, y2)).convert("RGB")
-    # JOUER button is a solid golden-yellow: high R, mid-high G, very low B
     r, g, b = region.split()
     mask = ImageChops.multiply(
         ImageChops.multiply(r.point(lambda v: 255 if v > 200 else 0), g.point(lambda v: 255 if 140 < v < 210 else 0)),
@@ -177,18 +162,11 @@ def is_jouer_visible(img: Image.Image) -> bool:
 
 
 def same_code(a: str, b: str) -> bool:
-    """True if two codes are close enough to be the same (handles OCR noise)."""
     return SequenceMatcher(None, a, b).ratio() >= CODE_SIMILARITY
 
 
 def parse_code(ocr_text: str):
-    """
-    Fix common OCR misreads for the leading 'p':
-      '9' and '#' are both common misreads.
-      '#884' likely means 'p4884' where 'p4' collapsed into '#'.
-    """
     text = ocr_text.strip()
-    # '#' can be OCR collapsing 'p4' into one glyph — insert the missing digit
     text = re.sub(r'^#(\d{3,})', r'p4\1', text)
     text = re.sub(r'^9', 'p', text)
     m = re.search(r'p[a-z0-9]{4}(?:-[a-z0-9]{5}){0,2}', text, re.IGNORECASE)
@@ -413,7 +391,7 @@ class App(tk.Tk):
         elif state == STATE_WAITING_JOUER:
             self._dot.config(fg=GREEN)
         else:
-            self._dot.config(fg=TEXT_DIM)  # paused / game not focused
+            self._dot.config(fg=TEXT_DIM)
 
 
     def _poll(self):
@@ -439,14 +417,12 @@ class App(tk.Tk):
 
 
 class StdoutSink:
-    """Emits watcher events as JSON lines for the overlay process."""
     def put(self, item):
         kind, value = item
         print(json.dumps({"type": kind, "value": value}), flush=True)
 
 
 def selftest() -> int:
-    """Checks that everything the headless watcher needs works on this machine; used by the installer build."""
     problems = []
     if parse_code("p4895-pnthc-7srtk") != "p4895-pnthc-7srtk":
         problems.append("code parsing")

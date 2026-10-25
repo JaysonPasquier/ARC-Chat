@@ -15,8 +15,6 @@
     return { name: m[1].toLowerCase(), args: m[2].trim() };
   }
 
-  // Names can contain spaces, so the longest known name at the start of the arguments wins; otherwise the first
-  // word may be an unambiguous prefix ("/mute bo" for "Bob").
   function resolvePlayer(args, players) {
     const q = norm(args);
     if (!q) return { error: "Tell me which player." };

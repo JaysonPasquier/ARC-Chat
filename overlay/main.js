@@ -268,7 +268,6 @@ function createTray() {
   tray.on("click", openSettings);
 }
 
-// play: click-through, never takes focus. chat: keyboard only (mouse still passes through). edit: mouse enabled to move/resize.
 function setMode(next) {
   if (next === mode || !win) return;
   mode = next;
@@ -311,7 +310,6 @@ function serverOrigin() {
   }
 }
 
-// The Steam session token is encrypted with the Windows account (DPAPI) and only ever sent to the server that issued it.
 function loadAccount() {
   try {
     if (!safeStorage.isEncryptionAvailable()) return null;
@@ -429,7 +427,6 @@ function leaveRoom() {
 
 function startWatcher() {
   if (NO_WATCHER) return setWatcher("disabled");
-  // Installed build: the bundled watcher.exe. From source: python + arc_watcher.py.
   const [command, args] = app.isPackaged
     ? [path.join(process.resourcesPath, "watcher", "arc-watcher.exe"), ["--headless"]]
     : [settings.pythonPath, [settings.watcherPath, "--headless"]];
@@ -591,7 +588,6 @@ ipcMain.on("move-end", () => {
 ipcMain.handle("auth-link-steam", async () => {
   linkAbort?.abort();
   const controller = (linkAbort = new AbortController());
-  // The settings window floats above everything; lower it so the browser sign-in page isn't hidden behind it.
   settingsWin?.setAlwaysOnTop(false);
   try {
     const { token, user } = await linkWithSteam({
