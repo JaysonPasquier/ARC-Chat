@@ -77,14 +77,6 @@ npm start
 
 To build the installer yourself, see [docs/RELEASE.md](docs/RELEASE.md).
 
-## Code signing policy
-
-Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
-
-- Only releases built from this repository by GitHub Actions are signed.
-- Approver and committer: [JaysonPasquier](https://github.com/JaysonPasquier).
-- Privacy: the app only sends your chat messages and your Steam name to the ARC Chat server, and nothing else. The installer itself sends no data.
-
 ## License
 
 Released under the [GNU General Public License v3.0](LICENSE) © 2026 JaysonPasquier. You can read, modify and share the code, but any version you distribute must stay under the same license, with the source and the original copyright.
