@@ -1,0 +1,11 @@
+node_modules/
+.env
+data/
+__pycache__/
+dist/
+overlay/build/*
+!overlay/build/icon.ico
+!overlay/build/icon.png
+server/
+docs/LIVE_SERVER.md
+docs/OVERLAY_LIVE.md

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>ARC Chat settings</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <header class="titlebar">
+    <img src="icon.png" alt="">
+    <span>ARC Chat</span>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" class="tab active" data-tab="account" role="tab">Account</button>
+    <button type="button" class="tab" data-tab="chat" role="tab">Chat</button>
+    <button type="button" class="tab" data-tab="colors" role="tab">Colors</button>
+    <button type="button" class="tab" data-tab="controls" role="tab">Controls</button>
+  </nav>
+
+  <main>
+    <form id="form" autocomplete="off">
+
+      <section class="panel" data-panel="account">
+        <h3><i></i>Steam account</h3>
+        <div id="account-linked" hidden>
+          <div class="row">
+            <span class="label">Signed in as</span>
+            <span id="account-name" class="account-name"></span>
+          </div>
+          <div class="row">
+            <span class="label">Use another account or stop chatting</span>
+            <button type="button" id="btn-unlink" class="line-btn danger">Unlink</button>
+          </div>
+          <p class="note">Your Steam name is shown next to your messages with a ✓, so other players know it's you.</p>
+        </div>
+        <div id="account-unlinked">
+          <p class="lead">Link your Steam account to chat with the players in your match.</p>
+          <button type="button" id="btn-link" class="play wide"><span class="chev"></span><span id="btn-link-text">Link Steam account</span></button>
+          <div id="link-code" hidden>
+            <p class="code-help">A Steam page opens in your browser. Press <b>Continue</b> only if it shows this code:</p>
+            <div id="code-tiles" class="code-tiles" aria-live="polite"></div>
+            <p class="note">Different code? Close that page, it wasn't opened by this app.</p>
+          </div>
+          <p class="note">You sign in on Steam's own website. This app never sees your password.</p>
+        </div>
+
+        <h3><i></i>Muted players</h3>
+        <div id="muted-list"></div>
+        <p class="note">In the chat: <b>/mute</b> &lt;player&gt;, <b>/unmute</b>, <b>/report</b> &lt;player&gt; [reason], <b>/help</b>. Press Tab to complete a name. Muting only hides messages for you; reports go to the moderators.</p>
+      </section>
+
+      <section class="panel" data-panel="chat" hidden>
+        <h3><i></i>Messages</h3>
+        <div class="row">
+          <span class="label">Hide old messages</span>
+          <label class="toggle"><input type="checkbox" name="fadeEnabled"><span class="val"></span></label>
+        </div>
+        <div class="row" data-depends="fadeEnabled">
+          <span class="label">Hide after</span>
+          <div class="ctl">
+            <input type="range" name="fadeSeconds" min="3" max="120" step="1">
+            <output data-for="fadeSeconds" data-unit="s"></output>
+          </div>
+        </div>
+        <div class="row">
+          <span class="label">Show time</span>
+          <label class="toggle"><input type="checkbox" name="showTime"><span class="val"></span></label>
+        </div>
+
+        <h3><i></i>Text</h3>
+        <div class="row">
+          <span class="label">Size</span>
+          <div class="ctl">
+            <input type="range" name="fontSize" min="10" max="36" step="1">
+            <output data-for="fontSize" data-unit="px"></output>
+          </div>
+        </div>
+        <div class="row">
+          <span class="label">Shadow</span>
+          <div class="ctl">
+            <input type="range" name="shadowOpacity" min="0" max="1" step="0.05">
+            <output data-for="shadowOpacity" data-unit="%"></output>
+          </div>
+        </div>
+
+        <h3><i></i>Overlay</h3>
+        <div class="row">
+          <span class="label">Opacity</span>
+          <div class="ctl">
+            <input type="range" name="windowOpacity" min="0.2" max="1" step="0.05">
+            <output data-for="windowOpacity" data-unit="%"></output>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="colors" hidden>
+        <h3><i></i>Text</h3>
+        <div class="row">
+          <span class="label">Messages</span>
+          <div class="ctl"><input type="color" name="textColor"></div>
+        </div>
+        <div class="row">
+          <span class="label">Your name</span>
+          <div class="ctl"><input type="color" name="ownNameColor"></div>
+        </div>
+        <div class="row">
+          <span class="label">A different color per player</span>
+          <label class="toggle"><input type="checkbox" name="namesColorful"><span class="val"></span></label>
+        </div>
+        <div class="row" data-depends="!namesColorful">
+          <span class="label">Other names</span>
+          <div class="ctl"><input type="color" name="nameColor"></div>
+        </div>
+        <div class="row" data-depends="showTime">
+          <span class="label">Time</span>
+          <div class="ctl"><input type="color" name="timeColor"></div>
+        </div>
+        <div class="row">
+          <span class="label">Info lines</span>
+          <div class="ctl"><input type="color" name="systemColor"></div>
+        </div>
+
+        <h3><i></i>Backgrounds</h3>
+        <div class="row">
+          <span class="label">Behind each message</span>
+          <div class="ctl">
+            <input type="color" name="lineBgColor">
+            <input type="range" name="lineBgOpacity" min="0" max="1" step="0.05">
+            <output data-for="lineBgOpacity" data-unit="%"></output>
+          </div>
+        </div>
+        <div class="row">
+          <span class="label">Chat box</span>
+          <div class="ctl">
+            <input type="color" name="panelColor">
+            <input type="range" name="panelOpacity" min="0" max="1" step="0.05">
+            <output data-for="panelOpacity" data-unit="%"></output>
+          </div>
+        </div>
+        <div class="row">
+          <span class="label">Typing field</span>
+          <div class="ctl">
+            <input type="color" name="inputBgColor">
+            <input type="range" name="inputBgOpacity" min="0" max="1" step="0.05">
+            <output data-for="inputBgOpacity" data-unit="%"></output>
+          </div>
+        </div>
+        <div class="row">
+          <span class="label">Typing field border</span>
+          <div class="ctl"><input type="color" name="accentColor"></div>
+        </div>
+        <div class="row">
+          <span class="label">Back to default look</span>
+          <button type="button" id="btn-reset" class="line-btn">Reset</button>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="controls" hidden>
+        <h3><i></i>Hotkeys</h3>
+        <div class="row">
+          <span class="label">Type a message</span>
+          <input name="hotkeyChat" class="hotkey" readonly title="Click, then press the keys">
+        </div>
+        <div class="row">
+          <span class="label">Move / resize the chat</span>
+          <input name="hotkeyEdit" class="hotkey" readonly title="Click, then press the keys">
+        </div>
+        <p class="note">Click a key, then press the new one. Letters need Ctrl, Alt or Shift so they still work in the game.</p>
+
+        <h3><i></i>Recording</h3>
+        <div class="row">
+          <span class="label">Hide from screenshots and OBS</span>
+          <label class="toggle"><input type="checkbox" name="hideFromCapture"><span class="val"></span></label>
+        </div>
+        <p class="note">Keeps the chat out of the match-code reader. Turn it off if you want it on stream.</p>
+
+        <h3><i></i>App</h3>
+        <div class="row">
+          <span class="label">Close ARC Chat</span>
+          <button type="button" id="btn-quit" class="line-btn danger">Quit</button>
+        </div>
+      </section>
+    </form>
+  </main>
+
+  <footer>
+    <div class="status">
+      <span id="status-dot" class="offline"></span>
+      <div>
+        <div id="status-server">…</div>
+        <div id="status-match" class="dim"></div>
+      </div>
+    </div>
+    <p id="error"></p>
+    <div class="buttons">
+      <button type="button" id="btn-cancel" class="hint-btn"><kbd>Esc</kbd>Cancel</button>
+      <button type="submit" form="form" class="play"><span class="chev"></span><span>Save</span></button>
+    </div>
+  </footer>
+
+  <div id="palette" class="palette" hidden>
+    <div id="palette-grid" class="palette-grid"></div>
+    <div id="sv" class="sv" tabindex="0" aria-label="Saturation and brightness"><span id="sv-knob" class="sv-knob"></span></div>
+    <div id="hue" class="hue" tabindex="0" aria-label="Hue"><span id="hue-knob" class="hue-knob"></span></div>
+    <div class="palette-row">
+      <span id="palette-preview" class="palette-preview"></span>
+      <input id="palette-hex" class="hex-input" maxlength="7" spellcheck="false" aria-label="Hex color">
+    </div>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+{
+  "name": "arc-chat-overlay",
+  "version": "0.1.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --allow-capture",
+    "local": "electron . --allow-capture --server=http://localhost:3000",
+    "build:watcher": "python -m PyInstaller --noconfirm --clean --onedir --name arc-watcher --distpath build/watcher-dist --workpath build/pyi --specpath build/pyi --exclude-module numpy --collect-binaries winsdk --hidden-import winsdk.windows.media.ocr --hidden-import winsdk.windows.graphics.imaging --hidden-import winsdk.windows.storage --hidden-import winsdk.windows.foundation --hidden-import winsdk.windows.foundation.collections --hidden-import winsdk.windows.globalization --hidden-import winsdk.windows.storage.streams ../arc_watcher.py",
+    "dist": "npm run build:watcher && electron-builder --win nsis",
+    "dist:app": "electron-builder --win nsis"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.4"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3"
+  },
+  "description": "In-game text chat overlay for ARC Raiders",
+  "author": "ARC Chat",
+  "build": {
+    "appId": "com.webandlive.arcchat",
+    "productName": "ARC Chat",
+    "copyright": "ARC Chat",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "commands.js",
+      "server-url.js",
+      "steam-link.js",
+      "settings.js",
+      "*.html",
+      "*.css",
+      "icon.png",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/watcher-dist/arc-watcher",
+        "to": "watcher"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "ARC-Chat-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "shortcutName": "ARC Chat"
+    }
+  }
+}
