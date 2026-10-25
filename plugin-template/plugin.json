@@ -1,0 +1,13 @@
+{
+  "id": "my-plugin",
+  "name": "My Plugin",
+  "version": "1.0.0",
+  "author": "your-name",
+  "description": "Describe what your plugin does in one sentence.",
+  "homepage": "https://github.com/your-name/my-plugin",
+  "main": "plugin.js",
+  "permissions": ["chat:read", "chat:render", "commands", "storage", "ui:overlay", "ui:settings"],
+  "network": [],
+  "overlay": { "page": "panel.html", "height": 60 },
+  "settings": { "page": "settings.html" }
+}

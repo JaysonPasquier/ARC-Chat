@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  color: #e8e6e1;
+  font: 14px Bahnschrift, "Segoe UI", sans-serif;
+}
+
+.panel {
+  display: flex;
+  align-items: center;
+  height: 100vh;
+  padding: 0 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #f6c21b;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.settings {
+  padding: 16px;
+}
+
+.settings h1 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.settings button {
+  padding: 6px 14px;
+  color: #101215;
+  background: #f6c21b;
+  border: 0;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}

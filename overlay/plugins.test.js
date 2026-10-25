@@ -18,6 +18,7 @@ const manifest = (extra = {}) => ({ id: "demo", name: "Demo", version: "1.2.3", 
 (async () => {
   const good = write(path.join(tmp, "src"), { "plugin.json": manifest(), "plugin.js": "arc.on('ready',()=>{})", "img/a.png": "x" });
   assert.equal(readManifest(good).id, "demo");
+  assert.equal(readManifest(path.join(__dirname, "..", "plugin-template")).id, "my-plugin", "the plugin template is valid");
   const bad = (m, re) => assert.throws(() => readManifest(write(fs.mkdtempSync(path.join(tmp, "b-")), { "plugin.json": m, "plugin.js": "" })), re);
   bad(manifest({ id: "Bad Id" }), /id must be/);
   bad(manifest({ permissions: ["root"] }), /unknown permission/);

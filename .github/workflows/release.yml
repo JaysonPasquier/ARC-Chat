@@ -50,6 +50,13 @@ jobs:
           name: installer
           path: out
 
+      - uses: actions/checkout@v7
+        with:
+          path: src
+
+      - name: Zip the plugin template
+        run: cd src/plugin-template && zip -r ../../out/arc-chat-plugin-template.zip .
+
       - name: Sign with SignPath
         if: env.SIGN == 'true'
         uses: signpath/github-action-submit-signing-request@v3
@@ -70,5 +77,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: out/*.exe
+          files: |
+            out/*.exe
+            out/arc-chat-plugin-template.zip
           generate_release_notes: true

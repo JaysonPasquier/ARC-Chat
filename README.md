@@ -62,7 +62,7 @@ Both keys can be changed in the settings, along with colors, opacity, font size 
 
 Plugins add features to the chat: commands, images in messages, panels, settings pages. Install them from **Settings → Plugins**, from a folder or a GitHub repository. Each plugin shows what it wants to do before you install it, and runs in its own sandbox.
 
-Want to make one? See [docs/PLUGINS.md](docs/PLUGINS.md).
+Want to make one? Grab the **[plugin template](https://github.com/JaysonPasquier/ARC-Chat/releases/latest/download/arc-chat-plugin-template.zip)** and read [docs/PLUGINS.md](docs/PLUGINS.md).
 
 ## Safe by design
 

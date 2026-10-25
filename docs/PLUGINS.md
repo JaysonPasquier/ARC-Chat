@@ -4,6 +4,10 @@ A plugin adds features to ARC Chat: new chat commands, images in messages, a pan
 
 Plugins run in their own sandbox. They can only do what their `plugin.json` asks for and the player accepted. They never get the player's Steam session, files, the match code reader or the game.
 
+## Start from the template
+
+**[Download the plugin template](https://github.com/JaysonPasquier/ARC-Chat/releases/latest/download/arc-chat-plugin-template.zip)**, or copy the [`plugin-template`](../plugin-template) folder. It uses every part of the API, so keep what you need and delete the rest.
+
 ## Files
 
 ```
