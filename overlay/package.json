@@ -17,7 +17,7 @@
     "socket.io-client": "^4.8.4"
   },
   "devDependencies": {
-    "electron": "^45.0.0",
+    "electron": "^45.1.0",
     "electron-builder": "^26.18.0"
   },
   "description": "In-game text chat overlay for ARC Raiders",
